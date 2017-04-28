@@ -1,4 +1,4 @@
-HOW TO make a um program:
+#HOW TO make a um program:
 
     First type:
         use comp40
@@ -9,5 +9,11 @@ HOW TO make a um program:
 
     Then run the program with a working UM (if there is one):
         ./um example.um
+
+
+#To see documentation for the assembly:
+    Type:
+        umasm -grammar
+
 
 

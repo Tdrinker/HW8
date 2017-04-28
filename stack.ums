@@ -1,11 +1,11 @@
-//    stack.ums
-//    Purpose: allocates space for the call stack and initializes
-//        the stack pointer (with code in the init section).
-//    By: Ge Gao, Ari Brown
+#    stack.ums
+#    Purpose: allocates space for the call stack and initializes
+#        the stack pointer (with code in the init section).
+#    By: Ge Gao, Ari Brown
 
 
 .zero r0
-.temps r5,r6, r7             
+.temps r5,r6,r7             
 .section stk
 .space 100000
 endstack:
