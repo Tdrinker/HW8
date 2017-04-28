@@ -1,0 +1,12 @@
+.zero r0
+.temps r5,r6, r7             
+.section stk
+.space 100000
+endstack:
+.section init
+
+_ustart:
+    r0 := 0               // establish r0 as always containing 0
+    r2 := endstack        // Build stack and set up r2 as the stack pointer
+    goto main linking r1  // invoke main() as a function
+    halt

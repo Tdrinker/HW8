@@ -1,0 +1,24 @@
+
+.zero r0
+.temps r6,r7
+
+main:
+    push r1 on stack r2           // address main returns to
+    push r3 on stack r2           // Callee saves non-volatile register
+    
+    r3 := 5                       // iterator i = 5
+    goto main_test               
+
+main_loop:
+
+    output "Hello"               // prints out hello 5 times
+    output '\n'
+    r3 := r3 - 1                 // i--
+
+main_test:
+    if (r3 != 0) goto main_loop  // while (i != 0)
+    pop r3 off stack r2          // restore caller's r3
+    pop r5 off stack r2          // get return address
+    r1 := 0                      // put EXIT_SUCCESS as the return value
+    goto r5                      // return
+
