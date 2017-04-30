@@ -1,41 +1,11 @@
 #    Callmain.ums
-#    Purpose: contains assembly code for main() and makes initial
-#        call to main.
-#    By: Ge Gao, Ari Brown
-
-
-.zero r0
-.temps r6,r7
-
-main:
-    push r1 on stack r2            // address main returns to
-    push r3 on stack r2            // Callee saves non-volatile register
-    push r4 on stack r2
-
-    r3 := 5                        // iterator i = 5
-
-    output "Type in a number(single digit) and i will give it back:\n"
-    r4 := input()
-    output r4
-    output "\n"  
-    
-    output "Then, I will say hello to you five times\n\n"
-
-    goto main_test
-
-
-main_loop:
-    
-
-    output "Hello Ari\n"           // prints out hello 5 times
-    
-    r3 := r3 - 1                   // i--
-
-main_test:
-    if (r3 != 0) goto main_loop    // while (i != 0)
-    pop r4 off stack r2            // restore caller's r4
-    pop r3 off stack r2            // restore caller's r3
-    pop r5 off stack r2            // get return address
-    r1 := 0                        // put EXIT_SUCCESS as the return value
-    goto r5                        // return
+#    Purpose: contains assembly code for main() 
+#         and makes initial call to main.
+#    By: Ge Gao, Ari Brown 
+ 
+    .zero r0
+    .temps r6,r7
+    .section init
+goto main               // call main
+halt
 
