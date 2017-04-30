@@ -48,9 +48,6 @@ init_commands:
 	m[r0][jumptable + '*'] := mul     // initialize multiply in jumptable
 	m[r0][jumptable + '+'] := add     // initialize add in jumptable
 
-
-
-
 ////////////////////// all the calculator related macros ///////////////////////
 	.section text
 main:
@@ -70,7 +67,7 @@ waiting_with_character:
 	halt
 
 digit:
-	
+
 
 
 mul:
