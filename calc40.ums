@@ -32,9 +32,9 @@ init_table_loop:
 
 /////////////////// Commands Specifications and Initializations ////////////////
 	.section init
-
-m[r0][jumptable + '*'] := mul         // initialize multiply in jumptable
-m[r0][jumptable + '+'] := add         // initialize add in jumptable
+init_commands:
+	m[r0][jumptable + '*'] := mul     // initialize multiply in jumptable
+	m[r0][jumptable + '+'] := add     // initialize add in jumptable
 
 
 
