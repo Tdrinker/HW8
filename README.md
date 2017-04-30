@@ -6,7 +6,7 @@
     Then type:
         umasm stack.ums calc40.ums callmain.ums > example.um
         
-        __ (Note that it is important that the stack.ums comes first and callmain.ums comes last) __
+        ~~ (Note that it is important that the stack.ums comes first and callmain.ums comes last) ~~
 
 
     Then run the program with a working UM (if there is one):
