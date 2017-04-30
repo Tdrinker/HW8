@@ -30,6 +30,13 @@ init_table_loop:
 	pop r3 off stack r2               // restore r3
 
 
+/////////////////// Commands Specifications and Initializations ////////////////
+	.section init
+
+m[r0][jumptable + '*'] := mul         // initialize multiply in jumptable
+m[r0][jumptable + '+'] := add         // initialize add in jumptable
+
+
 
 ////////////////////// all the calculator related macros ///////////////////////
 	.section text
@@ -49,12 +56,16 @@ waiting_with_character:
 	goto r5
 	halt
 
-
-
-/////////////////// Commands Specifications and Initializations ////////////////
-	.section init
-m[r0][jumptable + '*'] := mul
-	.section text
 mul:
     output "multiply\n"
     halt
+
+add:
+	output "add\n"
+	halt
+
+
+
+
+
+
