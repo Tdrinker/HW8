@@ -33,8 +33,21 @@ init_table_loop:
 /////////////////// Commands Specifications and Initializations ////////////////
 	.section init
 init_commands:
+	m[r0][jumptable + '0'] := digit   // initialize 0 in jumptable
+	m[r0][jumptable + '1'] := digit   // initialize 1 in jumptable
+	m[r0][jumptable + '2'] := digit   // initialize 2 in jumptable
+	m[r0][jumptable + '3'] := digit   // initialize 3 in jumptable
+	m[r0][jumptable + '4'] := digit   // initialize 4 in jumptable
+	m[r0][jumptable + '5'] := digit   // initialize 5 in jumptable
+	m[r0][jumptable + '6'] := digit   // initialize 6 in jumptable
+	m[r0][jumptable + '7'] := digit   // initialize 7 in jumptable
+	m[r0][jumptable + '8'] := digit   // initialize 8 in jumptable
+	m[r0][jumptable + '9'] := digit   // initialize 9 in jumptable
+
+
 	m[r0][jumptable + '*'] := mul     // initialize multiply in jumptable
 	m[r0][jumptable + '+'] := add     // initialize add in jumptable
+
 
 
 
@@ -53,13 +66,16 @@ waiting:
 waiting_with_character:
 	r5 := jumptable + r1              // retrieve the position in the table
 	r5 := m[r0][r5]						 
-	goto r5
+	goto r5                           // execute the instruction
 	halt
+
+digit:
+	
+
 
 mul:
     output "multiply\n"
     halt
-
 add:
 	output "add\n"
 	halt
