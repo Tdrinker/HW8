@@ -1,1 +1,37 @@
-//nothing here yet
+#    printd.ums
+#
+#    Purpose: to print words in decimal
+#
+#    By: Ge Gao, Ari Brown
+#    
+#    r3 contains the number to be printed
+#
+#    r4 is the number of digits of the number in r3
+
+    .zero r0
+    .temps r6, r7
+    .section text
+
+printd:
+    push r1 on stack r2
+    push r3 on stack r2
+    push r4 on stack r2
+
+    r3 := m[r0][r2+3]     // first parameter
+
+
+    r4 := 0
+    
+
+
+
+
+
+
+finish_printd:
+    pop r4 on stack r2
+    pop r3 on stack r2
+    pop r5 on stack r2
+    goto r5
+
+

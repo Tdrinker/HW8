@@ -1,11 +1,12 @@
 #    Callmain.ums
-#    Purpose: contains assembly code for main() 
-#         and makes initial call to main.
+#
+#    Purpose: contains initial call to main.
+#
 #    By: Ge Gao, Ari Brown 
  
     .zero r0
     .temps r6,r7
     .section init
-goto main               // call main
+goto main               // initial call to main
 halt
 

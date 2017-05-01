@@ -3,14 +3,18 @@
 #    Purpose: contains calculator-related functions.
 #
 #    By: Ge Gao, Ari Brown
+#
+#    Treat r4 as the boolean value: 0 if in waiting state
+#                                   1 if in entering state
+
 
 	.zero r0
-	.temp r6, r7
+	.temps r6, r7
 	.section rodata
 	jumptable:
 	.space 256
 
-//////////////////////////// initialize the jump table /////////////////////////
+//************************* initialize the jump table ************************//
 	.section init
 init_table:
 	output "start initializing jumptable\n"
@@ -30,25 +34,29 @@ init_table_loop:
 	pop r3 off stack r2               // restore r3
 
 
-/////////////////// Commands Specifications and Initializations ////////////////
+
+//***************** Commands Specifications and Initializations **************//
 	.section init
 init_commands:
-	m[r0][jumptable + '0'] := digit   // initialize 0 in jumptable
-	m[r0][jumptable + '1'] := digit   // initialize 1 in jumptable
-	m[r0][jumptable + '2'] := digit   // initialize 2 in jumptable
-	m[r0][jumptable + '3'] := digit   // initialize 3 in jumptable
-	m[r0][jumptable + '4'] := digit   // initialize 4 in jumptable
-	m[r0][jumptable + '5'] := digit   // initialize 5 in jumptable
-	m[r0][jumptable + '6'] := digit   // initialize 6 in jumptable
-	m[r0][jumptable + '7'] := digit   // initialize 7 in jumptable
-	m[r0][jumptable + '8'] := digit   // initialize 8 in jumptable
-	m[r0][jumptable + '9'] := digit   // initialize 9 in jumptable
+	m[r0][jumptable + '0'] := digit   // initialize digits in jumptable
+	m[r0][jumptable + '1'] := digit  
+	m[r0][jumptable + '2'] := digit   
+	m[r0][jumptable + '3'] := digit   
+	m[r0][jumptable + '4'] := digit   
+	m[r0][jumptable + '5'] := digit   
+	m[r0][jumptable + '6'] := digit   
+	m[r0][jumptable + '7'] := digit   
+	m[r0][jumptable + '8'] := digit   
+	m[r0][jumptable + '9'] := digit   
 
 
+	m[r0][jumptable + ' '] := waiting // initialize SPACE in jumptable
 	m[r0][jumptable + '*'] := mul     // initialize multiply in jumptable
 	m[r0][jumptable + '+'] := add     // initialize add in jumptable
 
-////////////////////// all the calculator related macros ///////////////////////
+
+
+//************************ calculator related macros *************************//
 	.section text
 main:
 	goto waiting                      // start program with waiting state
@@ -58,17 +66,33 @@ input_error:
 	goto waiting                      // go back waiting state after error
 
 waiting:
-	r1 := input()                     // ask for the input
+	r1 := input()                     
+	r4 := 0                           // indicate in the waiting state
+	goto recognize_input
 
-waiting_with_character:
+recognize_input:
 	r5 := jumptable + r1              // retrieve the position in the table
 	r5 := m[r0][r5]						 
 	goto r5                           // execute the instruction
-	halt
 
+
+	.temps r5,r6,r7                   // starting treat r5,r6,r7 as temps
 digit:
+	if (r4 == 1) goto append_digit     
+	push r1 on stack r2               // push the current digit on stack  
+	r4 := 1                           // indicate in the entering state
+	goto entering                     
 
-
+entering:
+	r1 := input()                     // read in the next input    
+	goto recognize_input              // and examine whether it is a digit
+ 
+append_digit:
+	pop r3 off stack r2               // pop the previous digit
+	r3 := r3 * 10                     // multiply the previous digit by 10
+	r1 := r1 + r3                     // successfully appended the new digit
+	push r1 on stack r2               // push the appended digit on the stack
+	goto entering                     
 
 mul:
     output "multiply\n"
@@ -76,6 +100,10 @@ mul:
 add:
 	output "add\n"
 	halt
+
+
+
+
 
 
 
