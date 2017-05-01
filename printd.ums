@@ -13,14 +13,14 @@
     .section text
 
 printd:
-    push r1 on stack r2   // saves return address
-    push r3 on stack r2   // saves non-volatile registers
+    push r1 on stack r2             // saves return address
+    push r3 on stack r2             // saves non-volatile registers
     push r4 on stack r2
     push r5 on stack r2
 
-    r3 := m[r0][r2+4]     // first parameter which is the word to be printed
+    r3 := m[r0][r2+4]               // r3 has the word to be printed
 
-    r4 := 0
+    r4 := 0                         // number of digits initialized to zero
 
 // Ex: if currently r3 is 435, and r4 is 1, then r5 will be 5
 //     if currently r3 is 435, and r4 is 2, then r5 will be 3
