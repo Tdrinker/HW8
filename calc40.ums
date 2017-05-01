@@ -6,7 +6,10 @@
 #
 #    Treat r4 as the boolean value: 0 if in waiting state
 #                                   1 if in entering state
-
+#
+#    Before pushing a value(of a digit) to the value stack, we  
+#	 convert it from ASCII to the corresponding decimal number
+#    in the ASCII table
 
 	.zero r0
 	.temps r6, r7
@@ -79,14 +82,17 @@ recognize_input:
 	.temps r5,r6,r7                   // starting treat r5,r6,r7 as temps
 digit:
 	if (r4 == 1) goto append_digit     
+	r1 := r1 - 0x30                   // convert from ASCII to decimal
 	push r1 on stack r2               // push the current digit on stack  
 	r4 := 1                           // indicate in the entering state
 	goto entering                     
+
 
 entering:
 	r1 := input()                     // read in the next input    
 	goto recognize_input              // and examine whether it is a digit
  
+
 append_digit:
 	pop r3 off stack r2               // pop the previous digit
 	r3 := r3 * 10                     // multiply the previous digit by 10
@@ -94,12 +100,15 @@ append_digit:
 	push r1 on stack r2               // push the appended digit on the stack
 	goto entering                     
 
+
 mul:
     output "multiply\n"
     halt
+
+
 add:
-	output "add\n"
-	halt
+    output "add\n"
+    halt
 
 
 

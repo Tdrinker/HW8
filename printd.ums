@@ -5,33 +5,56 @@
 #    By: Ge Gao, Ari Brown
 #    
 #    r3 contains the number to be printed
-#
 #    r4 is the number of digits of the number in r3
+#    r5 is the current digit to be pushed on stack
 
     .zero r0
     .temps r6, r7
     .section text
 
 printd:
-    push r1 on stack r2
-    push r3 on stack r2
+    push r1 on stack r2   // saves return address
+    push r3 on stack r2   // saves non-volatile registers
     push r4 on stack r2
+    push r5 on stack r2
 
-    r3 := m[r0][r2+3]     // first parameter
-
+    r3 := m[r0][r2+4]     // first parameter which is the word to be printed
 
     r4 := 0
-    
+
+// Ex: if currently r3 is 435, and r4 is 1, then r5 will be 5
+//     if currently r3 is 435, and r4 is 2, then r5 will be 3
+//     if currently r3 is 435, and r4 is 3, then r5 will be 4
+printd_number:
+
+    r4 := r4 + 1                    // number_of_digits++
+    r6 := r4*10                     // update the modular factor
+    r5 := r3 mod r6                 // get the least significant digit.
+    push r5 on stack r2             // push the current digits on stack
+    r3 := r3/10                     // drop the current least sigficant digit
+    if (r3 != 0) goto printd_number // base case: r3 becomes zero    
+    output ">>> "
+    goto print_digits_stack         // print all the digits on the stack
 
 
-
-
-
+print_stk:
+    pop r5 off stack r2             // pop the top digit
+    output r5                       // print the popped digit
+    output '\n'                        
+    r4 := r4 - 1                    // update the number of digits left to pop
+    if (r4 != 0) goto print_stk     // repeat until an empty stk
+    goto finish_printd
 
 finish_printd:
-    pop r4 on stack r2
-    pop r3 on stack r2
-    pop r5 on stack r2
-    goto r5
+    pop r4 off stack r2             // restore saved registers
+    pop r3 off stack r2
+    pop r5 off stack r2             // put return address in r5
+    goto r5                         // return
+
+
+
+
+
+
 
 
