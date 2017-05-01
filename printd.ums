@@ -28,13 +28,13 @@ printd:
 printd_number:
 
     r4 := r4 + 1                    // number_of_digits++
-    r6 := r4*10                     // update the modular factor
+    r6 := r4 * 10                   // update the modular factor
     r5 := r3 mod r6                 // get the least significant digit.
     push r5 on stack r2             // push the current digits on stack
-    r3 := r3/10                     // drop the current least sigficant digit
+    r3 := r3 / 10                   // drop the current least sigficant digit
     if (r3 != 0) goto printd_number // base case: r3 becomes zero    
     output ">>> "
-    goto print_digits_stack         // print all the digits on the stack
+    goto print_stk                  // print all the digits on the stack
 
 
 print_stk:

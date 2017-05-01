@@ -9,4 +9,3 @@
     .section init
 goto main               // initial call to main
 halt
-
