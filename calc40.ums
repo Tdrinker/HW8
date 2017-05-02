@@ -112,22 +112,7 @@ add:
 	output "add\n"
 	halt
 
-
-
 .temps r5,r6,r7
-// newline:
-// 	r4 := 1
-	
-// 	r1 := m[r0][endstack - 60]   // r1 = the 13th top value on the value stk
-// 	r7 := endstack - r3         // r7 = the top value on the stack
-// 	m[r0][r7] := r1             // change the top value to the one we want to print
-
-// 	goto printd linking r1      // printd will print the top value
-
-// 	output "[Newline]\n"
-// 	goto waiting
-
-
 newline:
 	r4 := r3
 
@@ -138,6 +123,8 @@ newline_loop:
 	goto printd linking r1
 	r4 := r4 - 1
 	if (r4 != 0) goto newline_recur
+	pop stack r2
+	goto waiting
 
 newline_recur:
 	pop stack r2
