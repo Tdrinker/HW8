@@ -15,8 +15,8 @@
 	.zero r0
 	.temps r6, r7
 	.section rodata
-	temp_stk:
-	.space 100000
+	// temp_stk:
+	// .space 100000
 	jumptable:
 	.space 256
 
@@ -96,12 +96,12 @@ entering:
 	goto recognize_input              // and examine whether it is a digit
  
 append_digit:
-	pop r3 off stack r2               // pop the previous digit
-	r3 := r3 * 10                     // multiply the previous digit by 10
+	pop r4 off stack r2               // pop the previous digit
+	r4 := r4 * 10                     // multiply the previous digit by 10
 	r1 := r1 - 0x30                   // convert from ASCII to decimal	
-	r1 := r1 + r3                     // successfully appended the new digit
+	r1 := r1 + r4                     // successfully appended the new digit
 	push r1 on stack r2               // push the appended digit on the stack
-	r3 := r3 + 1                      // number of values on the stk++
+	r4 := 1                           // indicate in the entering state
 	goto entering                     
 
 mul:
@@ -114,43 +114,58 @@ add:
 
 
 
-.temps r6,r7
+.temps r5,r6,r7
 newline:
 	r4 := 1
 
 newline_loop:
-	goto printd linking r1
+	r7 := endstack - r4
+	r1 := m[r0][r7]             // r1 = the 13th top value on the value stk
+	r7 := endstack - r3         // r7 = the top value on the stack
+	m[r0][r7] := r1             // change the top value to the one we want to print
 
-	pop r6 off stack r2
-	r7 := temp_stk + r4
-	m[r0][r7] := r6
+	goto printd linking r1      // printd will print the top value
 
-	r5 := r3 - r4
 	r4 := r4 + 1
+	r1 := r3 + 1
+	if (r4 != r1) goto newline_loop
 
-	if (r5 != 0) goto newline_loop
-
-
-
-	r5 := 0
-	goto reconstruct_value_stk
-
-reconstruct_value_stk:
-	r4 := r3 - r5
-
-	r7 := temp_stk + r4
-	r4 := m[r0][r7] 
-
-	push r4 on stack r2
-	r5 := r5 + 1
-
-	r4 := r3 - r5
-	if (r4 != 0) goto reconstruct_value_stk
-
+	output "[Newline]\n"
 	goto waiting
 
-	// output "newline\n"
-	// halt
+
+
+
+
+
+// .temps r6,r7
+// newline:
+	// r4 := 1
+
+// newline_loop:
+// 	goto printd linking r1
+// 	pop r6 off stack r2
+// 	r7 := temp_stk + r4
+// 	m[r0][r7] := r6
+// 	r5 := r3 - r4
+// 	r4 := r4 + 1
+// 	if (r5 != 0) goto newline_loop
+
+// 	r5 := 0
+// 	goto reconstruct_value_stk
+
+// reconstruct_value_stk:
+// 	r4 := r3 - r5
+// 	r7 := temp_stk + r4
+// 	r4 := m[r0][r7] 
+// 	push r4 on stack r2
+// 	r5 := r5 + 1
+// 	r4 := r3 - r5
+// 	if (r4 != 0) goto reconstruct_value_stk
+// 	goto waiting
+
+// 	// output "newline\n"
+// 	// halt
 
 
 
