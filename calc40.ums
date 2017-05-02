@@ -98,12 +98,12 @@ append_digit:
 	goto entering                     
 
 mul:
-    output "multiply\n"
-    halt
+	output "multiply\n"
+	halt
 
 add:
-    output "add\n"
-    halt
+	output "add\n"
+	halt
 
 newline:
 	goto printd linking r1
