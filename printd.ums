@@ -44,10 +44,11 @@ print_stk:
     goto finish_printd
 
 finish_printd:
+    pop r5 off stack r2             // put return address in r5
     pop r4 off stack r2             // restore saved registers
     pop r3 off stack r2
     pop r1 off stack r2             // put return address in r5
-    goto waiting                    // return
+    goto  r1                        // return
 
 
 

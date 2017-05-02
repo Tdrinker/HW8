@@ -4,6 +4,7 @@
 #
 #    By: Ge Gao, Ari Brown
 #
+#    Treat r3 as the number of numbers(values) on the stack
 #    Treat r4 as the boolean value: 0 if in waiting state
 #                                   1 if in entering state
 #
@@ -14,12 +15,15 @@
 	.zero r0
 	.temps r6, r7
 	.section rodata
+	temp_stk:
+	.space 100000
 	jumptable:
 	.space 256
 
 //************************* initialize the jump table ************************//
 	.section init
 init_table:
+	push r1 on stack r2
 	output "start initializing jumptable\n"
 	push r3 on stack r2               // saves non-volatile pointer r3
 	push r4 on stack r2               // saves non-volatile pointer r4
@@ -35,7 +39,7 @@ init_table_loop:
 
 	pop r4 off stack r2               // restore r4
 	pop r3 off stack r2               // restore r3
-
+	pop r1 off stack r2
 
 //***************** Commands Specifications and Initializations **************//
 	.section init
@@ -61,6 +65,7 @@ init_commands:
 //************************ calculator related macros *************************//
 	.section text
 main:
+	r3 := 0
 	goto waiting                      // start program with waiting state
 
 input_error:
@@ -82,6 +87,7 @@ digit:
 	if (r4 == 1) goto append_digit     
 	r1 := r1 - 0x30                   // convert from ASCII to decimal
 	push r1 on stack r2               // push the current digit on stack  
+	r3 := r3 + 1                      // number of values on the stk++
 	r4 := 1                           // indicate in the entering state
 	goto entering                     
 
@@ -95,6 +101,7 @@ append_digit:
 	r1 := r1 - 0x30                   // convert from ASCII to decimal	
 	r1 := r1 + r3                     // successfully appended the new digit
 	push r1 on stack r2               // push the appended digit on the stack
+	r3 := r3 + 1                      // number of values on the stk++
 	goto entering                     
 
 mul:
@@ -105,10 +112,47 @@ add:
 	output "add\n"
 	halt
 
+
+
+.temps r6,r7
 newline:
+	r4 := 1
+
+newline_loop:
 	goto printd linking r1
-	output "newline\n"
-	halt
+
+	pop r6 off stack r2
+	r7 := temp_stk + r4
+	m[r0][r7] := r6
+
+	r5 := r3 - r4
+	r4 := r4 + 1
+
+	if (r5 != 0) goto newline_loop
+
+
+
+	r5 := 0
+	goto reconstruct_value_stk
+
+reconstruct_value_stk:
+	r4 := r3 - r5
+
+	r7 := temp_stk + r4
+	r4 := m[r0][r7] 
+
+	push r4 on stack r2
+	r5 := r5 + 1
+
+	r4 := r3 - r5
+	if (r4 != 0) goto reconstruct_value_stk
+
+	goto waiting
+
+	// output "newline\n"
+	// halt
+
+
 
 
 
