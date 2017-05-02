@@ -37,7 +37,6 @@ init_table_loop:
 	pop r3 off stack r2               // restore r3
 
 
-
 //***************** Commands Specifications and Initializations **************//
 	.section init
 init_commands:
@@ -52,10 +51,10 @@ init_commands:
 	m[r0][jumptable + '8'] := digit   
 	m[r0][jumptable + '9'] := digit   
 
-
 	m[r0][jumptable + ' '] := waiting // initialize SPACE in jumptable
 	m[r0][jumptable + '*'] := mul     // initialize multiply in jumptable
 	m[r0][jumptable + '+'] := add     // initialize add in jumptable
+	m[r0][jumptable + '\n'] := newline// initialize newline in jumptable
 
 
 
@@ -78,7 +77,6 @@ recognize_input:
 	r5 := m[r0][r5]						 
 	goto r5                           // execute the instruction
 
-
 	.temps r5,r6,r7                   // starting treat r5,r6,r7 as temps
 digit:
 	if (r4 == 1) goto append_digit     
@@ -87,28 +85,36 @@ digit:
 	r4 := 1                           // indicate in the entering state
 	goto entering                     
 
-
 entering:
 	r1 := input()                     // read in the next input    
 	goto recognize_input              // and examine whether it is a digit
  
-
 append_digit:
 	pop r3 off stack r2               // pop the previous digit
 	r3 := r3 * 10                     // multiply the previous digit by 10
+	r1 := r1 - 0x30                   // convert from ASCII to decimal	
 	r1 := r1 + r3                     // successfully appended the new digit
 	push r1 on stack r2               // push the appended digit on the stack
 	goto entering                     
-
 
 mul:
     output "multiply\n"
     halt
 
-
 add:
     output "add\n"
     halt
+
+newline:
+	goto printd linking r1
+	output "newline\n"
+	halt
+
+
+
+
+
+
 
 
 
