@@ -115,59 +115,40 @@ add:
 
 
 .temps r5,r6,r7
+// newline:
+// 	r4 := 1
+	
+// 	r1 := m[r0][endstack - 60]   // r1 = the 13th top value on the value stk
+// 	r7 := endstack - r3         // r7 = the top value on the stack
+// 	m[r0][r7] := r1             // change the top value to the one we want to print
+
+// 	goto printd linking r1      // printd will print the top value
+
+// 	output "[Newline]\n"
+// 	goto waiting
+
+
 newline:
-	r4 := 1
+	r4 := r3
 
 newline_loop:
 	r7 := endstack - r4
-	r1 := m[r0][r7]             // r1 = the 13th top value on the value stk
-	r7 := endstack - r3         // r7 = the top value on the stack
-	m[r0][r7] := r1             // change the top value to the one we want to print
+	r1 := m[r0][r7]             // r1 = the current element on the value stk	
+	push r1 on stack r2
+	goto printd linking r1
+	r4 := r4 - 1
+	if (r4 != 0) goto newline_recur
 
-	goto printd linking r1      // printd will print the top value
-
-	r4 := r4 + 1
-	r1 := r3 + 1
-	if (r4 != r1) goto newline_loop
-
-	output "[Newline]\n"
+newline_recur:
+	pop stack r2
+	r7 := endstack - r4
+	r1 := m[r0][r7]             // r1 = the current element on the value stk	
+	push r1 on stack r2
+	goto printd linking r1
+	r4 := r4 - 1
+	if (r4 != 0) goto newline_recur
+	pop stack r2
 	goto waiting
-
-
-
-
-
-
-// .temps r6,r7
-// newline:
-	// r4 := 1
-
-// newline_loop:
-// 	goto printd linking r1
-// 	pop r6 off stack r2
-// 	r7 := temp_stk + r4
-// 	m[r0][r7] := r6
-// 	r5 := r3 - r4
-// 	r4 := r4 + 1
-// 	if (r5 != 0) goto newline_loop
-
-// 	r5 := 0
-// 	goto reconstruct_value_stk
-
-// reconstruct_value_stk:
-// 	r4 := r3 - r5
-// 	r7 := temp_stk + r4
-// 	r4 := m[r0][r7] 
-// 	push r4 on stack r2
-// 	r5 := r5 + 1
-// 	r4 := r3 - r5
-// 	if (r4 != 0) goto reconstruct_value_stk
-// 	goto waiting
-
-// 	// output "newline\n"
-// 	// halt
-
-
 
 
 
