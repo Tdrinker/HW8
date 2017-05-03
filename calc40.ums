@@ -144,6 +144,7 @@ change_sign:
 
 flip_sign:
 	r1 := 0xFFFFFFFF - r1
+	r1 := r1 + 1
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
@@ -210,33 +211,36 @@ div_by_zero:
 	goto waiting
 
 x_is_negative:
-	output "x is negative\n"
 	if (r1 >s 0x7FFFFFFF) goto x_and_y_are_negative
 	r4 := 0xFFFFFFFF - r4		// x is negative, y is positive
+	r4 := r4 + 1
 
 	r1 := r4 / r1		// convert the positive division result back
 	r1 := 0xFFFFFFFF - r1		// into negative representation
+	r1 := r1 + 1
 
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
 
 y_is_negative:
-	output "y is negative\n"
 	r1 := 0xFFFFFFFF - r1		// y is negative, x is positive
+	r1 := r1 + 1
 				// convert the negative value into positive
 	r1 := r4 / r1			// do the division
 	r1 := 0xFFFFFFFF - r1		// into negative representation
+	r1 := r1 + 1
 
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
 
 x_and_y_are_negative:
-	output "both are negative\n"
 	r1 := 0xFFFFFFFF - r1
+	r1 := r1 + 1
 
 	r4 := 0xFFFFFFFF - r4
+	r4 := r4 + 1
 
 	r1 := r4 / r1
 	push r1 on stack r2

@@ -28,6 +28,7 @@ printd:
 print_negative:
     output "-"
     r3 := 0xFFFFFFFF - r3
+    r3 := r3 + 1
 
 continue_printing:
     r4 := 0                         // number of digits initialized to zero
