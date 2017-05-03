@@ -43,24 +43,32 @@ init_table_loop:
 //***************** Commands Specifications and Initializations **************//
 	.section init
 init_commands:
-	m[r0][jumptable + '0'] := digit   // initialize digits in jumptable
-	m[r0][jumptable + '1'] := digit  
-	m[r0][jumptable + '2'] := digit   
-	m[r0][jumptable + '3'] := digit   
-	m[r0][jumptable + '4'] := digit   
-	m[r0][jumptable + '5'] := digit   
-	m[r0][jumptable + '6'] := digit   
-	m[r0][jumptable + '7'] := digit   
-	m[r0][jumptable + '8'] := digit   
-	m[r0][jumptable + '9'] := digit   
+    m[r0][jumptable + '0'] := digit   // initialize digits in jumptable
+    m[r0][jumptable + '1'] := digit  
+    m[r0][jumptable + '2'] := digit   
+    m[r0][jumptable + '3'] := digit   
+    m[r0][jumptable + '4'] := digit   
+    m[r0][jumptable + '5'] := digit   
+    m[r0][jumptable + '6'] := digit   
+    m[r0][jumptable + '7'] := digit   
+    m[r0][jumptable + '8'] := digit   
+    m[r0][jumptable + '9'] := digit   
 
-	m[r0][jumptable + ' '] := waiting // initialize SPACE in jumptable
-	m[r0][jumptable + '*'] := mul     // initialize multiply in jumptable
-	m[r0][jumptable + '+'] := add     // initialize add in jumptable
-	m[r0][jumptable + '-'] := sub
-	m[r0][jumptable + '/'] := div
-	m[r0][jumptable + 'c'] := change_sign
-	m[r0][jumptable + '\n'] := newline// initialize newline in jumptable
+    m[r0][jumptable + 'd'] := dup     // initialize commands in jumptable
+    m[r0][jumptable + 's'] := swap
+    m[r0][jumptable + 'p'] := pop_value
+    m[r0][jumptable + 'z'] := pop_all
+    m[r0][jumptable + '&'] := bitwise_and
+    m[r0][jumptable + '|'] := bitwise_or    
+    m[r0][jumptable + '~'] := bitwise_complement    
+    m[r0][jumptable + 'c'] := change_sign    
+
+    m[r0][jumptable + ' '] := waiting
+    m[r0][jumptable + '*'] := mul
+    m[r0][jumptable + '+'] := add
+    m[r0][jumptable + '-'] := sub
+    m[r0][jumptable + '/'] := div
+    m[r0][jumptable + '\n'] := newline
 
 
 
@@ -148,6 +156,66 @@ flip_sign:
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
+
+dup:
+    goto check1 linking r1           // at least 1 element on stack
+    pop r1 off stack r2              // pop x
+    r4 := r1                         // duplicate x
+    push r1 on stack r2              // push x on stack
+    push r4 on stack r2              // push the duplicate on stack
+    r3 := r3 + 1                     // update the number of elements on stk
+    goto waiting
+
+pop_value:
+    goto check1 linking r1           // at least 1 element on stack
+    pop stack r2                     // pop x
+    r3 := r3 - 1                     // update the number of elements on stk
+    goto waiting
+
+pop_all:
+    if (r3 == 0) goto waiting        // if the stack empty, back to waiting
+pop_all_loop:
+    pop stack r2                     // pop the current element
+    r3 := r3 - 1                     // update the number of elements on stk
+    if (r3 != 0) goto pop_all_loop   // keep poping until the stack is empty
+    goto waiting
+
+bitwise_and:
+    goto check2 linking r1           // at least 2 elements on stack
+    pop r1 off stack r2              // pop x
+    pop r4 off stack r2              // pop y
+
+    r1 := r1 & r4                     
+    push r1 on stack r2              // push x & y on the stack
+    r3 := r3 - 1                     // update number of elements on stack
+    goto waiting
+
+bitwise_or:
+    goto check2 linking r1           // at least 2 elements on stack 
+    pop r1 off stack r2              // pop x
+    pop r4 off stack r2              // pop y
+
+    r1 := r1 | r4
+    push r1 on stack r2              // push x | y on the stack
+    r3 := r3 - 1                     // update number of elements on stack
+    goto waiting    
+
+bitwise_complement:
+    goto check1 linking r1           // at least 1 element on stack 
+    pop r4 off stack r2              // pop x
+
+    r4 := ~r4
+    push r4 on stack r2              // push ~x  on the stack
+    goto waiting    
+
+
+swap:
+    goto check2 linking r1           // at least 2 elements on stack
+    pop r1 off stack r2              // pop x
+    pop r4 off stack r2              // pop y
+    push r1 on stack r2              // push y
+    push r4 on stack r2              // push x
+    goto waiting
 
 add:
 	goto check2 linking r1
