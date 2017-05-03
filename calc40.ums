@@ -57,6 +57,8 @@ init_commands:
 	m[r0][jumptable + ' '] := waiting // initialize SPACE in jumptable
 	m[r0][jumptable + '*'] := mul     // initialize multiply in jumptable
 	m[r0][jumptable + '+'] := add     // initialize add in jumptable
+	m[r0][jumptable + '-'] := sub
+	m[r0][jumptable + '/'] := div
 	m[r0][jumptable + '\n'] := newline// initialize newline in jumptable
 
 
@@ -72,7 +74,6 @@ input_error:
 	goto waiting                      // go back waiting state after error
 
 waiting:
-	output "waiting\n"
 	r1 := input()                     
 	r4 := 0                           // indicate in the waiting state
 	goto recognize_input
@@ -105,11 +106,9 @@ append_digit:
 	goto entering                     
 
 check2:
-	if (r3 == 0) goto stackOverflow_two
     	push r1 on stack r2               // saves return address
-	
+    	if (r3 == 0) goto stackOverflow_two
 	if (r3 == 1) goto stackOverflow_two
-
 
 	pop r1 off stack r2               // put return address in r5
     	goto r1   
@@ -117,9 +116,7 @@ check2:
 stackOverflow_two:
 	output "Stack underflow---expected at least 2 elements\n"
 	pop r1 off stack r2
-	halt
-	goto waiting 
-
+	goto waiting
 
 add:
 	goto check2 linking r1
@@ -147,8 +144,41 @@ mul:
 	r3 := r3 + 1
 	goto waiting
 
+sub:
+	goto check2 linking r1
+	pop r1 off stack r2
+	r3 := r3 - 1
+	pop r4 off stack r2
+	r3 := r3 - 1
+
+	r1 := r1 - r4
+	push r1 on stack r2
+	r3 := r3 + 1
+	goto waiting
+
+div:
+	goto check2 linking r1
+	pop r1 off stack r2
+	r3 := r3 - 1
+	pop r4 off stack r2
+	r3 := r3 - 1
+
+	if (r1 == 0) goto div_by_zero
+
+	r1 := r4 / r1
+	push r1 on stack r2
+	r3 := r3 + 1
+	goto waiting
+
+div_by_zero:
+	output "division by 0\n"
+	push r4 on stack r2
+	push r1 on stack r2
+	r3 := r3 + 2
+	goto waiting
 
 newline:
+	if (r3 == 0) goto waiting	// don't try to print a stk of size 0
 	r4 := r3
 
 newline_loop:
