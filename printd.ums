@@ -8,8 +8,7 @@
 #    r4 is the number of digits of the number in r3
 #    r5 is the current digit to be pushed on stack
 
-    .zero r0
-    .temps r6, r7
+    .temps r0, r6, r7
     .section text
 
 printd:
@@ -20,8 +19,23 @@ printd:
 
     r3 := m[r0][r2+4]               // r3 has the word to be printed
 
+    output ">>> "
+                                    // analyze the number to print negatives
+    if (r3 >s 0x7FFFFFFF) goto print_negative
+    if (r3 == 0) goto print_zero
+    goto continue_printing
+
+print_negative:
+    output "-"
+    r3 := 0xFFFFFFFF - r3
+
+continue_printing:
     r4 := 0                         // number of digits initialized to zero
     goto printd_number
+
+print_zero:
+    output "0\n"
+    goto finish_printd
 
 // Ex: if currently r3 is 435, and r4 is 1, then r5 will be 5
 //     if currently r3 is 435, and r4 is 2, then r5 will be 3
@@ -32,12 +46,13 @@ printd_number:
     push r5 on stack r2             // push the current digits on stack
     r3 := r3 / 10                   // drop the current least sigficant digit
     if (r3 != 0) goto printd_number // base case: r3 becomes zero    
-    output ">>> "
+
     goto print_stk                  // print all the digits on the stack
 
 print_stk:
     pop r5 off stack r2             // pop the top digit
     output r5 + 0x30                // print the popped digit
+
     r4 := r4 - 1                    // update the number of digits left to pop
     if (r4 != 0) goto print_stk     // repeat until an empty stk
     output '\n'                        
@@ -49,7 +64,6 @@ finish_printd:
     pop r3 off stack r2
     pop r1 off stack r2             // put return address in r5
     goto  r1                        // return
-
 
 
 

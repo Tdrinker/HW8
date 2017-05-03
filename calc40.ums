@@ -59,12 +59,14 @@ init_commands:
 	m[r0][jumptable + '+'] := add     // initialize add in jumptable
 	m[r0][jumptable + '-'] := sub
 	m[r0][jumptable + '/'] := div
+	m[r0][jumptable + 'c'] := change_sign
 	m[r0][jumptable + '\n'] := newline// initialize newline in jumptable
 
 
 
 //************************ calculator related macros *************************//
 	.section text
+	.zero r0 
 main:
 	r3 := 0
 	goto waiting                      // start program with waiting state
@@ -105,6 +107,12 @@ append_digit:
 	r4 := 1                           // indicate in the entering state
 	goto entering                     
 
+check1:
+	push r1 on stack r2
+	if (r3 == 0) goto stackOverflow_one
+	pop r1 off stack r2
+	goto r1
+
 check2:
     	push r1 on stack r2               // saves return address
     	if (r3 == 0) goto stackOverflow_two
@@ -114,13 +122,34 @@ check2:
     	goto r1   
 
 stackOverflow_two:
-	output "Stack underflow---expected at least 2 elements\n"
+	output "Stack underflow - expected at least 2 elements\n"
 	pop r1 off stack r2
+	goto waiting
+
+stackOverflow_one:
+	output "Stack underflow - expected at least 1 element\n"
+	pop r1 off stack r2
+	goto waiting
+
+change_sign:
+	goto check1 linking r1
+
+	pop r1 off stack r2
+	r3 := r3 - 1
+
+	if (r1 != 0) goto flip_sign
+	push r1 on stack r2
+	r3 := r3 + 1
+	goto waiting
+
+flip_sign:
+	r1 := 0xFFFFFFFF - r1
+	push r1 on stack r2
+	r3 := r3 + 1
 	goto waiting
 
 add:
 	goto check2 linking r1
-	output "returned\n"
 
 	pop r1 off stack r2
 	r3 := r3 - 1
@@ -151,7 +180,7 @@ sub:
 	pop r4 off stack r2
 	r3 := r3 - 1
 
-	r1 := r1 - r4
+	r1 := r4 - r1
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
@@ -165,6 +194,9 @@ div:
 
 	if (r1 == 0) goto div_by_zero
 
+	if (r4 >s 0x7FFFFFFF) goto x_is_negative  // r4 is x
+	if (r1 >s 0x7FFFFFFF) goto y_is_negative  // r1 is y
+
 	r1 := r4 / r1
 	push r1 on stack r2
 	r3 := r3 + 1
@@ -176,6 +208,41 @@ div_by_zero:
 	push r1 on stack r2
 	r3 := r3 + 2
 	goto waiting
+
+x_is_negative:
+	output "x is negative\n"
+	if (r1 >s 0x7FFFFFFF) goto x_and_y_are_negative
+	r4 := 0xFFFFFFFF - r4		// x is negative, y is positive
+
+	r1 := r4 / r1		// convert the positive division result back
+	r1 := 0xFFFFFFFF - r1		// into negative representation
+
+	push r1 on stack r2
+	r3 := r3 + 1
+	goto waiting
+
+y_is_negative:
+	output "y is negative\n"
+	r1 := 0xFFFFFFFF - r1		// y is negative, x is positive
+				// convert the negative value into positive
+	r1 := r4 / r1			// do the division
+	r1 := 0xFFFFFFFF - r1		// into negative representation
+
+	push r1 on stack r2
+	r3 := r3 + 1
+	goto waiting
+
+x_and_y_are_negative:
+	output "both are negative\n"
+	r1 := 0xFFFFFFFF - r1
+
+	r4 := 0xFFFFFFFF - r4
+
+	r1 := r4 / r1
+	push r1 on stack r2
+	r3 := r3 + 1
+	goto waiting
+
 
 newline:
 	if (r3 == 0) goto waiting	// don't try to print a stk of size 0
