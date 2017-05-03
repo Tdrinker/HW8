@@ -72,6 +72,7 @@ input_error:
 	goto waiting                      // go back waiting state after error
 
 waiting:
+	output "waiting\n"
 	r1 := input()                     
 	r4 := 0                           // indicate in the waiting state
 	goto recognize_input
@@ -104,21 +105,26 @@ append_digit:
 	goto entering                     
 
 check2:
-    push r1 on stack r2               // saves return address
 	if (r3 == 0) goto stackOverflow_two
+    	push r1 on stack r2               // saves return address
+	
 	if (r3 == 1) goto stackOverflow_two
 
 
 	pop r1 off stack r2               // put return address in r5
-    goto  r1   
+    	goto r1   
 
 stackOverflow_two:
 	output "Stack underflow---expected at least 2 elements\n"
-	goto waiting
+	pop r1 off stack r2
+	halt
+	goto waiting 
 
 
 add:
 	goto check2 linking r1
+	output "returned\n"
+
 	pop r1 off stack r2
 	r3 := r3 - 1
 	pop r4 off stack r2
