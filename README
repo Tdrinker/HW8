@@ -1,0 +1,19 @@
+
+calc40 RPN calc by Ari Brown and Ge Gao
+
+We believe all of the RPN calculator's functionality
+has been correctly implemented.
+
+We used the recommended calling convention.
+
+We chose to implement the print module using
+a recursive loop, in which we mod by 10 and then divide
+by 10, to obtain and then remove each digit from a number.
+We do this until the base case of division by 10 being 0.
+We also check if the value is greater than 2^31 - 1, to 
+determine if a negative sign should be printed, following
+the two's compliment representation.
+
+We spent 4 hours analyzing,
+We spent 5 hours writing assembly code
+We spent 2 hours debugging

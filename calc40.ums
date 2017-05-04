@@ -114,8 +114,10 @@ append_digit:
     r1 := r1 + r4                     // successfully appended the new digit
     push r1 on stack r2               // push the appended digit on the stk
     r4 := 1                           // indicate in the entering state
-    goto entering                     
+    goto entering 
 
+// check that there are two numbers on stack,
+// otherwise print message and go back to waiting
 check2:
     push r1 on stack r2               // saves return address
     if (r3 == 0) goto stackOverflow_two
@@ -124,6 +126,8 @@ check2:
     pop r1 off stack r2               // put return address in r1
     goto r1   
 
+// check that there is one number on stack,
+// otherwise print message and go back to waiting
 check1:
     push r1 on stack r2               // saves return address
     if (r3 == 0) goto stackOverflow_one
@@ -140,6 +144,8 @@ stackOverflow_one:
     pop r1 off stack r2
     goto waiting
 
+// calculate bitwise and from two values popped off r2 stack
+// store the result pushed onto r2
 bitwise_and:
     goto check2 linking r1           // at least 2 elements on stack
     pop r1 off stack r2              // pop x
@@ -150,6 +156,8 @@ bitwise_and:
     r3 := r3 - 1                     // update number of elements on stack
     goto waiting
 
+// duplicate value popped off r2 stack
+// store the result pushed onto r2
 dup:
     goto check1 linking r1           // at least 1 element on stack
     pop r1 off stack r2              // pop x
@@ -159,6 +167,8 @@ dup:
     r3 := r3 + 1                     // update the number of elements on stk
     goto waiting
 
+// swap two values popped off r2 stack
+// store the result pushed onto r2
 swap:
     goto check2 linking r1           // at least 2 elements on stack
     pop r1 off stack r2              // pop x
@@ -167,15 +177,16 @@ swap:
     push r4 on stack r2              // push x
     goto waiting
 
+// pop a value off r2 stack
 pop_value:
     goto check1 linking r1           // at least 1 element on stack
     pop stack r2                     // pop x
     r3 := r3 - 1                     // update the number of elements on stk
     goto waiting
 
+// pop all values off r2 stack
 pop_all:
     if (r3 == 0) goto waiting        // if the stack empty, back to waiting
-
 pop_all_loop:
     pop stack r2                     // pop the current element
     r3 := r3 - 1                     // update the number of elements on stk
@@ -183,7 +194,8 @@ pop_all_loop:
     goto waiting
 
 
-
+// calculate bitwise or from two values popped off r2 stack
+// store the result pushed onto r2
 bitwise_or:
     goto check2 linking r1           // at least 2 elements on stack 
     pop r1 off stack r2              // pop x
@@ -194,7 +206,8 @@ bitwise_or:
     r3 := r3 - 1                     // update number of elements on stack
     goto waiting    
 
-
+// calculate bitwise compliment of value popped off r2 stack
+// store the result pushed onto r2
 bitwise_complement:
     goto check1 linking r1           // at least 1 element on stack 
     pop r4 off stack r2              // pop x
@@ -204,6 +217,8 @@ bitwise_complement:
     goto waiting    
 
 
+// switch sign of value popped off r2 stack
+// store the result pushed onto r2
 change_sign:
     goto check1 linking r1           // at least 1 element on stack 
     pop r4 off stack r2              // pop x
@@ -212,14 +227,8 @@ change_sign:
     push r4 on stack r2              // push -x on the stack
     goto waiting    
 
-
-flip_sign:
-	r1 := 0xFFFFFFFF - r1
-	r1 := r1 + 1
-	push r1 on stack r2
-	r3 := r3 + 1
-	goto waiting
-
+// add two values popped off r2 stack
+// store the result pushed onto r2
 add:
     goto check2 linking r1           // at least 2 elements on stack 
     pop r1 off stack r2              // pop x
@@ -230,6 +239,8 @@ add:
     r3 := r3 - 1                     // update number of elements on stack
     goto waiting
 
+// multiply two values popped off r2 stack
+// store the result pushed onto r2
 mul:
     goto check2 linking r1           // at least 2 elements on stack 
     pop r1 off stack r2              // pop x
@@ -240,6 +251,8 @@ mul:
     r3 := r3 - 1                     // update number of elements on stack
     goto waiting
 
+// subtract two values popped off r2 stack
+// store the result pushed onto r2
 sub:
     goto check2 linking r1           // at least 2 elements on stack
     pop r1 off stack r2              // pop x
@@ -250,27 +263,27 @@ sub:
     r3 := r3 - 1                     // update number of elements on stack
     goto waiting
 
+// divide two values popped off r2 stack
+// store the result pushed onto r2
 div:
 	goto check2 linking r1
-	pop r1 off stack r2
+	pop r1 off stack r2              // r1 is y
 	r3 := r3 - 1
-	pop r4 off stack r2
+	pop r4 off stack r2              // r4 is x
 	r3 := r3 - 1
-	if (r1 == 0) goto div_by_zero
-	if (r4 >s 0x7FFFFFFF) goto x_is_negative  // r4 is x
-	if (r1 >s 0x7FFFFFFF) goto y_is_negative  // r1 is y
-	r1 := r4 / r1
-	push r1 on stack r2
+	if (r1 == 0) goto div_by_zero    // check if division by 0
+	if (r4 >s 0x7FFFFFFF) goto x_is_negative
+	if (r1 >s 0x7FFFFFFF) goto y_is_negative
+	r1 := r4 / r1                    // otherwise, divide two positives
+	push r1 on stack r2              // save result on r2
 	r3 := r3 + 1
 	goto waiting
-
 div_by_zero:
-	output "division by 0\n"
+	output "Division by zero\n"
 	push r4 on stack r2
 	push r1 on stack r2
 	r3 := r3 + 2
 	goto waiting
-
 x_is_negative:
 	if (r1 >s 0x7FFFFFFF) goto x_and_y_are_negative
 	r4 := 0xFFFFFFFF - r4            // x is negative, y is positive
@@ -281,7 +294,6 @@ x_is_negative:
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
-
 y_is_negative:
 	r1 := 0xFFFFFFFF - r1            // y is negative, x is positive
 	r1 := r1 + 1
@@ -292,7 +304,6 @@ y_is_negative:
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
-
 x_and_y_are_negative:
 	r1 := 0xFFFFFFFF - r1
 	r1 := r1 + 1
@@ -303,6 +314,8 @@ x_and_y_are_negative:
 	r3 := r3 + 1
 	goto waiting
 
+// print all of the stack upon reaching a new line
+// restore stack variables in r2 as they were
 newline:
     if (r3 == 0) goto waiting        // do not print a stk of size 0
     r4 := r3                         // initialize counter
