@@ -12,33 +12,30 @@
 #	 convert it from ASCII to the corresponding decimal number
 #    in the ASCII table
 
-	.zero r0
-	.temps r6, r7
-	.section rodata
-	// temp_stk:
-	// .space 100000
-	jumptable:
-	.space 256
+    .zero r0
+    .temps r6, r7
+    .section rodata
+    jumptable:
+    .space 256
 
 //************************* initialize the jump table ************************//
-	.section init
+    .section init
 init_table:
-	push r1 on stack r2
-	output "start initializing jumptable\n"
-	push r3 on stack r2               // saves non-volatile pointer r3
-	push r4 on stack r2               // saves non-volatile pointer r4
-	r3 := 0                           // r3 holds the current table index
+    push r1 on stack r2
+    push r3 on stack r2               // saves non-volatile pointer r3
+    push r4 on stack r2               // saves non-volatile pointer r4
+    r3 := 0                           // r3 holds the current table index
 
 init_table_loop:
-	r4 := jumptable + r3              // r4 holds the position in the table
-	m[r0][r4] := input_error          // initialize current bucket to error
-	r3 := r3 + 1                      // update current table index
-	r5 := 256 - r3                    // keep initializing while not at 
-	if (r5 != 0) goto init_table_loop // the end of the table
+    r4 := jumptable + r3              // r4 holds the position in the table
+    m[r0][r4] := input_error          // initialize current bucket to error
+    r3 := r3 + 1                      // update current table index
+    r5 := 256 - r3                    // keep initializing while not at 
+    if (r5 != 0) goto init_table_loop // the end of the table
 
-	pop r4 off stack r2               // restore r4
-	pop r3 off stack r2               // restore r3
-	pop r1 off stack r2
+    pop r4 off stack r2               // restore r4
+    pop r3 off stack r2               // restore r3
+    pop r1 off stack r2               
 
 //***************** Commands Specifications and Initializations **************//
 	.section init
@@ -60,124 +57,87 @@ init_commands:
     m[r0][jumptable + 'z'] := pop_all
     m[r0][jumptable + '&'] := bitwise_and
     m[r0][jumptable + '|'] := bitwise_or    
-    m[r0][jumptable + '~'] := bitwise_complement    
-    m[r0][jumptable + 'c'] := change_sign    
+    m[r0][jumptable + '~'] := bitwise_complement  
 
-    m[r0][jumptable + ' '] := waiting
-    m[r0][jumptable + '*'] := mul
-    m[r0][jumptable + '+'] := add
+    m[r0][jumptable + ' '] := waiting // initialize SPACE in jumptable
+    m[r0][jumptable + '*'] := mul     // initialize multiply in jumptable
+    m[r0][jumptable + '+'] := add     // initialize add in jumptable
     m[r0][jumptable + '-'] := sub
     m[r0][jumptable + '/'] := div
-    m[r0][jumptable + '\n'] := newline
-
+    m[r0][jumptable + 'c'] := change_sign
+    m[r0][jumptable + '\n'] := newline// initialize newline in jumptable
 
 
 //************************ calculator related macros *************************//
 	.section text
 	.zero r0 
+    .temp r5,r6,r7
 main:
-	r3 := 0
-	goto waiting                      // start program with waiting state
+    r3 := 0
+    goto waiting                      // start program with waiting state
 
 input_error:
-	output "invalid input character\n"   
-	goto waiting                      // go back waiting state after error
+    output "invalid input character\n"   
+    goto waiting                      // go back waiting state after error
 
 waiting:
-	r1 := input()                     
-	r4 := 0                           // indicate in the waiting state
-	goto recognize_input
+    r1 := input()   
+    if (r1 == -1) goto halt_macro                  
+    r4 := 0                           // indicate in the waiting state
+    goto recognize_input
+
+halt_macro:
+    halt
 
 recognize_input:
-	r5 := jumptable + r1              // retrieve the position in the table
-	r5 := m[r0][r5]						 
-	goto r5                           // execute the instruction
+    r5 := jumptable + r1              // retrieve the position in the table
+    r5 := m[r0][r5]                      
+    goto r5                           // execute the instruction
 
-	.temps r5,r6,r7                   // starting treat r5,r6,r7 as temps
+    .temps r5,r6,r7                   // starting treat r5,r6,r7 as temps
 digit:
-	if (r4 == 1) goto append_digit     
-	r1 := r1 - 0x30                   // convert from ASCII to decimal
-	push r1 on stack r2               // push the current digit on stack  
-	r3 := r3 + 1                      // number of values on the stk++
-	r4 := 1                           // indicate in the entering state
-	goto entering                     
+    if (r4 == 1) goto append_digit     
+    r1 := r1 - 0x30                   // convert from ASCII to decimal
+    push r1 on stack r2               // push the current digit on stack  
+    r3 := r3 + 1                      // number of values on the stk++
+    r4 := 1                           // indicate in the entering state
+    goto entering                     
 
 entering:
-	r1 := input()                     // read in the next input    
-	goto recognize_input              // and examine whether it is a digit
+    r1 := input()                     // read in the next input    
+    goto recognize_input              // and examine whether it is a digit
  
 append_digit:
-	pop r4 off stack r2               // pop the previous digit
-	r4 := r4 * 10                     // multiply the previous digit by 10
-	r1 := r1 - 0x30                   // convert from ASCII to decimal	
-	r1 := r1 + r4                     // successfully appended the new digit
-	push r1 on stack r2               // push the appended digit on the stack
-	r4 := 1                           // indicate in the entering state
-	goto entering                     
-
-check1:
-	push r1 on stack r2
-	if (r3 == 0) goto stackOverflow_one
-	pop r1 off stack r2
-	goto r1
+    pop r4 off stack r2               // pop the previous digit
+    r4 := r4 * 10                     // multiply the previous digit by 10
+    r1 := r1 - 0x30                   // convert from ASCII to decimal  
+    r1 := r1 + r4                     // successfully appended the new digit
+    push r1 on stack r2               // push the appended digit on the stk
+    r4 := 1                           // indicate in the entering state
+    goto entering                     
 
 check2:
-    	push r1 on stack r2               // saves return address
-    	if (r3 == 0) goto stackOverflow_two
-	if (r3 == 1) goto stackOverflow_two
+    push r1 on stack r2               // saves return address
+    if (r3 == 0) goto stackOverflow_two
+    if (r3 == 1) goto stackOverflow_two
 
-	pop r1 off stack r2               // put return address in r5
-    	goto r1   
+    pop r1 off stack r2               // put return address in r1
+    goto r1   
+
+check1:
+    push r1 on stack r2               // saves return address
+    if (r3 == 0) goto stackOverflow_one
+    pop r1 off stack r2
+    goto r1                           // put return address in r1
 
 stackOverflow_two:
-	output "Stack underflow - expected at least 2 elements\n"
-	pop r1 off stack r2
-	goto waiting
+    output "Stack underflow---expected at least 2 elements\n"
+    pop r1 off stack r2
+    goto waiting
 
 stackOverflow_one:
-	output "Stack underflow - expected at least 1 element\n"
-	pop r1 off stack r2
-	goto waiting
-
-change_sign:
-	goto check1 linking r1
-
-	pop r1 off stack r2
-	r3 := r3 - 1
-
-	if (r1 != 0) goto flip_sign
-	push r1 on stack r2
-	r3 := r3 + 1
-	goto waiting
-
-flip_sign:
-	r1 := 0xFFFFFFFF - r1
-	r1 := r1 + 1
-	push r1 on stack r2
-	r3 := r3 + 1
-	goto waiting
-
-dup:
-    goto check1 linking r1           // at least 1 element on stack
-    pop r1 off stack r2              // pop x
-    r4 := r1                         // duplicate x
-    push r1 on stack r2              // push x on stack
-    push r4 on stack r2              // push the duplicate on stack
-    r3 := r3 + 1                     // update the number of elements on stk
-    goto waiting
-
-pop_value:
-    goto check1 linking r1           // at least 1 element on stack
-    pop stack r2                     // pop x
-    r3 := r3 - 1                     // update the number of elements on stk
-    goto waiting
-
-pop_all:
-    if (r3 == 0) goto waiting        // if the stack empty, back to waiting
-pop_all_loop:
-    pop stack r2                     // pop the current element
-    r3 := r3 - 1                     // update the number of elements on stk
-    if (r3 != 0) goto pop_all_loop   // keep poping until the stack is empty
+    output "Stack underflow---expected at least 1 element\n"
+    pop r1 off stack r2
     goto waiting
 
 bitwise_and:
@@ -190,6 +150,40 @@ bitwise_and:
     r3 := r3 - 1                     // update number of elements on stack
     goto waiting
 
+dup:
+    goto check1 linking r1           // at least 1 element on stack
+    pop r1 off stack r2              // pop x
+    r4 := r1                         // duplicate x
+    push r1 on stack r2              // push x on stack
+    push r4 on stack r2              // push the duplicate on stack
+    r3 := r3 + 1                     // update the number of elements on stk
+    goto waiting
+
+swap:
+    goto check2 linking r1           // at least 2 elements on stack
+    pop r1 off stack r2              // pop x
+    pop r4 off stack r2              // pop y
+    push r1 on stack r2              // push y
+    push r4 on stack r2              // push x
+    goto waiting
+
+pop_value:
+    goto check1 linking r1           // at least 1 element on stack
+    pop stack r2                     // pop x
+    r3 := r3 - 1                     // update the number of elements on stk
+    goto waiting
+
+pop_all:
+    if (r3 == 0) goto waiting        // if the stack empty, back to waiting
+
+pop_all_loop:
+    pop stack r2                     // pop the current element
+    r3 := r3 - 1                     // update the number of elements on stk
+    if (r3 != 0) goto pop_all_loop   // keep poping until the stack is empty
+    goto waiting
+
+
+
 bitwise_or:
     goto check2 linking r1           // at least 2 elements on stack 
     pop r1 off stack r2              // pop x
@@ -200,6 +194,7 @@ bitwise_or:
     r3 := r3 - 1                     // update number of elements on stack
     goto waiting    
 
+
 bitwise_complement:
     goto check1 linking r1           // at least 1 element on stack 
     pop r4 off stack r2              // pop x
@@ -209,50 +204,51 @@ bitwise_complement:
     goto waiting    
 
 
-swap:
+change_sign:
+    goto check1 linking r1           // at least 1 element on stack 
+    pop r4 off stack r2              // pop x
+
+    r4 := -r4
+    push r4 on stack r2              // push -x on the stack
+    goto waiting    
+
+
+flip_sign:
+	r1 := 0xFFFFFFFF - r1
+	r1 := r1 + 1
+	push r1 on stack r2
+	r3 := r3 + 1
+	goto waiting
+
+add:
+    goto check2 linking r1           // at least 2 elements on stack 
+    pop r1 off stack r2              // pop x
+    pop r4 off stack r2              // pop y
+
+    r1 := r1 + r4
+    push r1 on stack r2              // push x + y on the stack
+    r3 := r3 - 1                     // update number of elements on stack
+    goto waiting
+
+mul:
+    goto check2 linking r1           // at least 2 elements on stack 
+    pop r1 off stack r2              // pop x
+    pop r4 off stack r2              // pop y
+
+    r1 := r1 * r4
+    push r1 on stack r2              // push x * y on the stack
+    r3 := r3 - 1                     // update number of elements on stack
+    goto waiting
+
+sub:
     goto check2 linking r1           // at least 2 elements on stack
     pop r1 off stack r2              // pop x
     pop r4 off stack r2              // pop y
-    push r1 on stack r2              // push y
-    push r4 on stack r2              // push x
+
+    r1 := r4 - r1
+    push r1 on stack r2              // push x - y on the stack
+    r3 := r3 - 1                     // update number of elements on stack
     goto waiting
-
-add:
-	goto check2 linking r1
-
-	pop r1 off stack r2
-	r3 := r3 - 1
-	pop r4 off stack r2
-	r3 := r3 - 1
-
-	r1 := r1 + r4
-	push r1 on stack r2
-	r3 := r3 + 1
-	goto waiting
-
-mul:
-	goto check2 linking r1
-	pop r1 off stack r2
-	r3 := r3 - 1
-	pop r4 off stack r2
-	r3 := r3 - 1
-
-	r1 := r1 * r4
-	push r1 on stack r2
-	r3 := r3 + 1
-	goto waiting
-
-sub:
-	goto check2 linking r1
-	pop r1 off stack r2
-	r3 := r3 - 1
-	pop r4 off stack r2
-	r3 := r3 - 1
-
-	r1 := r4 - r1
-	push r1 on stack r2
-	r3 := r3 + 1
-	goto waiting
 
 div:
 	goto check2 linking r1
@@ -260,12 +256,9 @@ div:
 	r3 := r3 - 1
 	pop r4 off stack r2
 	r3 := r3 - 1
-
 	if (r1 == 0) goto div_by_zero
-
 	if (r4 >s 0x7FFFFFFF) goto x_is_negative  // r4 is x
 	if (r1 >s 0x7FFFFFFF) goto y_is_negative  // r1 is y
-
 	r1 := r4 / r1
 	push r1 on stack r2
 	r3 := r3 + 1
@@ -280,25 +273,22 @@ div_by_zero:
 
 x_is_negative:
 	if (r1 >s 0x7FFFFFFF) goto x_and_y_are_negative
-	r4 := 0xFFFFFFFF - r4		// x is negative, y is positive
+	r4 := 0xFFFFFFFF - r4            // x is negative, y is positive
 	r4 := r4 + 1
-
-	r1 := r4 / r1		// convert the positive division result back
-	r1 := 0xFFFFFFFF - r1		// into negative representation
+	r1 := r4 / r1                    // convert (+) division result back
+	r1 := 0xFFFFFFFF - r1            // into negative representation
 	r1 := r1 + 1
-
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
 
 y_is_negative:
-	r1 := 0xFFFFFFFF - r1		// y is negative, x is positive
+	r1 := 0xFFFFFFFF - r1            // y is negative, x is positive
 	r1 := r1 + 1
-				// convert the negative value into positive
-	r1 := r4 / r1			// do the division
-	r1 := 0xFFFFFFFF - r1		// into negative representation
+	                                 // convert the negative value
+	r1 := r4 / r1                    // into positive do the division
+	r1 := 0xFFFFFFFF - r1            // into negative representation
 	r1 := r1 + 1
-
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
@@ -306,136 +296,37 @@ y_is_negative:
 x_and_y_are_negative:
 	r1 := 0xFFFFFFFF - r1
 	r1 := r1 + 1
-
 	r4 := 0xFFFFFFFF - r4
 	r4 := r4 + 1
-
 	r1 := r4 / r1
 	push r1 on stack r2
 	r3 := r3 + 1
 	goto waiting
 
-
 newline:
-	if (r3 == 0) goto waiting	// don't try to print a stk of size 0
-	r4 := r3
+    if (r3 == 0) goto waiting        // do not print a stk of size 0
+    r4 := r3                         // initialize counter
 
 newline_loop:
-	r7 := endstack - r4
-	r1 := m[r0][r7]             // r1 = the current element on the value stk	
-	push r1 on stack r2
-	goto printd linking r1
-	r4 := r4 - 1
-	if (r4 != 0) goto newline_recur
-	pop stack r2
-	goto waiting
+    r7 := endstack - r4
+    r1 := m[r0][r7]                  // r1: the current element on stk  
+    push r1 on stack r2              // push current element to a temp
+    goto printd linking r1           // print the current element
+    r4 := r4 - 1                     // update counter
+    if (r4 != 0) goto newline_recur  // keep printing until traversed stk
+    pop stack r2                     // pop the temp element at the top
+    goto waiting
 
 newline_recur:
-	pop stack r2
-	r7 := endstack - r4
-	r1 := m[r0][r7]             // r1 = the current element on the value stk	
-	push r1 on stack r2
-	goto printd linking r1
-	r4 := r4 - 1
-	if (r4 != 0) goto newline_recur
-	pop stack r2
-	goto waiting
-
-
-
-
-
-	// pop r4 off stack r2
-	// r3 := r3 - 1
-
-	// output "r4: "
-	// output r4
-	// output '\n'
-
-	// pop r4 off stack r2
-	// r3 := r3 - 1
-
-	// output "r4: "
-	// output r4
-	// output '\n'
-
-	// pop r4 off stack r2
-	// r3 := r3 - 1
-
-	// output "r4: "
-	// output r4
-	// output '\n'
-
-	// pop r4 off stack r2
-	// r3 := r3 - 1
-
-	// output "r4: "
-	// output r4
-	// output '\n'
-
-
-
-
-	// pop r5 off stack r2
-	// r3 := r3 - 1
-
-	// output "r5: "
-	// output r5
-	// output '\n'
-
-	// pop r5 off stack r2
-	// r3 := r3 - 1
-
-	// output "r5: "
-	// output r5
-	// output '\n'
-
-	// pop r5 off stack r2
-	// r3 := r3 - 1
-
-	// output "r5: "
-	// output r5
-	// output '\n'
-
-	// pop r5 off stack r2
-	// r3 := r3 - 1
-
-	// output "r5: "
-	// output r5
-	// output '\n'
-
-
-
-	// pop r1 off stack r2
-	// r3 := r3 - 1
-
-	// output "r1: "
-	// output r1
-	// output '\n'
-
-	// pop r1 off stack r2
-	// r3 := r3 - 1
-
-	// output "r1: "
-	// output r1
-	// output '\n'
-
-	// pop r1 off stack r2
-	// r3 := r3 - 1
-
-	// output "r1: "
-	// output r1
-	// output '\n'
-
-	// pop r1 off stack r2
-	// r3 := r3 - 1
-
-	// output "r1: "
-	// output r1
-	// output '\n'
-
-
-
+    pop stack r2
+    r7 := endstack - r4
+    r1 := m[r0][r7]                  // r1: the current element on the stk  
+    push r1 on stack r2              // push current element to a temp
+    goto printd linking r1           // print the current element
+    r4 := r4 - 1                     // update counter
+    if (r4 != 0) goto newline_recur  // keep printing until traversed stk
+    pop stack r2                     // pop the temp element at the top
+    goto waiting
 
 
 
